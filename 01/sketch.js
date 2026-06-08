@@ -34,14 +34,7 @@ function setup() {
   // 定義迷宮路徑點 (相對於 displayWidth/displayHeight 的座標)
   // 這裡座標是在 translate(width/2, height/2) 之後的系統中
   // 座標範圍大約在 -dW/2 到 dW/2 之間
-  mazePath = [
-    { x: 0.4, y: 0.35 },  // 起點 (螢幕左側)
-    { x: 0.4, y: -0.2 },
-    { x: 0.1, y: -0.2 },
-    { x: 0.1, y: 0.2 },
-    { x: -0.4, y: 0.2 },
-    { x: -0.4, y: -0.35 } // 終點 (螢幕右側)
-  ];
+  mazePath = generateRandomPath();
 
   // 開始偵測手部
   handPose.detectStart(capture, gotHands);
@@ -279,12 +272,7 @@ function checkGameLogic(dW, dH) {
   // 檢查是否在起點
   if (dist(tip.x, tip.y, startPos.x, startPos.y) < pathWidth / 2) {
     if (gameState === "GAME_OVER" || gameState === "WON") {
-      // 重置遊戲
-      lives = 3;
-      elapsedTime = 0;
-      hitCooldown = 0;
-      retryBtn.hide();
-      homeBtn.hide();
+      resetGame();
     }
     if (gameState !== "PLAYING") {
       // 確保瀏覽器的音訊上下文在使用者互動後啟動
@@ -356,6 +344,7 @@ function resetGame() {
   hitCooldown = 0;
   retryBtn.hide();
   homeBtn.hide();
+  mazePath = generateRandomPath(); // 每局重置時生成新地圖
 }
 
 // 回首頁邏輯 (在此專案中等同於重置)
@@ -373,4 +362,21 @@ function windowResized() {
   // 當視窗縮放時，自動調整畫布大小
   resizeCanvas(windowWidth, windowHeight);
   positionButtons();
+}
+
+// 隨機生成迷宮路徑
+function generateRandomPath() {
+  let newPath = [];
+  let x = 0.4;
+  let y = random(-0.3, 0.3);
+  newPath.push({ x: x, y: y });
+  
+  let segments = [0.1, -0.15, -0.4]; // 預計停頓的 X 軸座標
+  for (let nextX of segments) {
+    y = random(-0.35, 0.35); // 隨機高度
+    newPath.push({ x: x, y: y }); // 垂直移動
+    x = nextX;
+    newPath.push({ x: x, y: y }); // 水平移動
+  }
+  return newPath;
 }
